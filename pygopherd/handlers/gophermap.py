@@ -67,21 +67,22 @@ class BuckGophermapHandler(base.BaseHandler):
             if re.search("\t", line):   # gophermap link
                 args = map(lambda arg: arg.strip(), line.split("\t"))
 
-                if len(args) < 2 or not len(args[1]):
+                if len(args) < 3 and not args[1]:
                     args[1] = args[0][1:] # Copy display string to selector
 
                 selector = args[1]
-                if selector[0] != '/' and selector[0:4] != "URL:": # Relative link
+                if selector and selector[0] != '/' \
+                    and selector[0:4] != "URL:": # Relative link
                     selector = selectorbase + '/' + selector
                 
                 entry = gopherentry.GopherEntry(selector, self.config)
                 entry.type = args[0][0]
                 entry.name = args[0][1:]
 
-                if len(args) >= 3 and len(args[2]):
+                if len(args) >= 3 and args[2]:
                     entry.host = args[2]
 
-                if len(args) >= 4 and len(args[3]):
+                if len(args) >= 4 and args[3]:
                     entry.port = int(args[3])
 
                 if entry.gethost() == None and entry.getport() == None:
