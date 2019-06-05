@@ -18,7 +18,7 @@
 
 import SocketServer
 import re
-import os, stat, os.path, mimetypes
+import os, stat, os.path, mimetypes, glob
 from pygopherd import protocols, gopherentry
 
 rootpath = None
@@ -51,6 +51,9 @@ class VFS_Real:
 
     def listdir(self, selector):
         return os.listdir(self.getfspath(selector))
+    
+    def glob(self, selector)
+        return sorted(glob.glob(self.getfspath(selector)))
 
     def getrootpath(self):
         global rootpath
