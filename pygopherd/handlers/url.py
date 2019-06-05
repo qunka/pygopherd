@@ -40,9 +40,9 @@ class HTMLURLHandler(BaseHandler):
                self.selector.find("\r") == -1
 
     def canhandlerequest(self):
-        """We can handle the request if it's for something that starts
-        with http or https."""
-        return re.search("^(/|)URL:.+://", self.selector)
+        """We can handle the request if it starts with URL: and has a URL
+        scheme."""
+        return re.search("^(/|)URL:.+:", self.selector)
 
     def getentry(self):
         if not self.entry:
