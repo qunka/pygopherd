@@ -90,6 +90,8 @@ class BuckGophermapHandler(base.BaseHandler):
                     # it in for gopher+.
                     if self.vfs.exists(selector):
                         entry.populatefromvfs(self.vfs, selector)
+                        if entry.type == '?':
+                            entry.type = entry.guesstype()
                 self.entries.append(entry)
             else:                       # Info line
                 line = line.strip()
