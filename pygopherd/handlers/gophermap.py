@@ -84,7 +84,7 @@ class BuckGophermapHandler(base.BaseHandler):
                             File = File[len(self.vfs.getrootpath()):]
                             subentry = gopherentry.GopherEntry(File, self.config)
                             subentry.type = args[0][0]
-                            if selector == args[0][1:]:
+                            if args[1] == args[0][1:]:
                                 subentry.name = os.path.basename(File)
                             else:
                                 subentry.name = args[0][1:]
