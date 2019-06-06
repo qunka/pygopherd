@@ -52,7 +52,7 @@ class VFS_Real:
     def listdir(self, selector):
         return os.listdir(self.getfspath(selector))
     
-    def glob(self, selector)
+    def glob(self, selector):
         return sorted(glob.glob(self.getfspath(selector)))
 
     def getrootpath(self):
