@@ -75,6 +75,25 @@ class BuckGophermapHandler(base.BaseHandler):
                     and selector[0:4] != "URL:": # Relative link
                     selector = selectorbase + '/' + selector
                 
+                if ('*' in selector or '?' in selector) and len(args) < 3:
+                    files = self.vfs.glob(selector)
+                    if files:
+                        for File in files:
+                            if File.endswith('gophermap'):
+                                continue
+                            File = File[len(self.vfs.getrootpath()):]
+                            subentry = gopherentry.GopherEntry(File, self.config)
+                            subentry.type = args[0][0]
+                            if selector == args[0][1:]:
+                                subentry.name = os.path.basename(File)
+                            else:
+                                subentry.name = args[0][1:]
+                            subentry.populatefromvfs(self.vfs, File)
+                            if subentry.type == '?':
+                                subentry.type = subentry.guesstype()
+                            self.entries.append(subentry)
+                        continue
+                
                 entry = gopherentry.GopherEntry(selector, self.config)
                 entry.type = args[0][0]
                 entry.name = args[0][1:]
@@ -92,6 +111,7 @@ class BuckGophermapHandler(base.BaseHandler):
                         entry.populatefromvfs(self.vfs, selector)
                         if entry.type == '?':
                             entry.type = entry.guesstype()
+                
                 self.entries.append(entry)
             else:                       # Info line
                 line = line.strip()
