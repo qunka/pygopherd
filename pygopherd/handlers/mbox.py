@@ -17,13 +17,13 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-import SocketServer
+import socketserver
 import re
 import os, stat, os.path, mimetypes
 from pygopherd import protocols, gopherentry
 from pygopherd.handlers.virtual import Virtual
 from pygopherd.handlers.base import VFS_Real
-from mailbox import UnixMailbox, Maildir
+from mailbox import mbox, Maildir
 from stat import *
 
 
@@ -47,7 +47,7 @@ class FolderHandler(Virtual):
         self.entries = []
         count = 1
         while 1:
-            message = self.mbox.next()
+            message = next(self.mbox)
             if not message:
                 break
             handler = MessageHandler(self.genargsselector(self.getargflag() + \
@@ -104,7 +104,7 @@ class MessageHandler(Virtual):
         mbox = self.openmailbox()
         message = None
         for x in range(self.msgnum):
-            message = mbox.next()
+            message = next(mbox)
         self.message = message
         return self.message
 
@@ -134,23 +134,29 @@ class MBoxFolderHandler(FolderHandler):
     def canhandlerequest(self):
         """Figure out if this is a handleable request."""
 
+        if not isinstance(self.vfs, VFS_Real):
+            return 0
         if self.selectorargs:
             return 0
-        
         if not (self.statresult and S_ISREG(self.statresult[ST_MODE])):
             return 0
         try:
-            fd = self.vfs.open(self.getselector(), "rt")
+            fd = self.vfs.open(self.getselector(), "rb")
             startline = fd.readline()
             fd.close()
-            
-            return re.match(UnixMailbox._fromlinepattern, startline)
+
+            # From old Python2.7 UnixMailbox
+            fromlinepattern = (rb"From \s*[^\s]+\s+\w\w\w\s+\w\w\w\s+\d?\d\s+"
+                        rb"\d?\d:\d\d(:\d\d)?(\s+[^\s]+)?\s+\d\d\d\d\s*"
+                        rb"[^\s]*\s*"
+                        b"$")
+
+            return re.match(fromlinepattern, startline)
         except IOError:
             return 0
 
     def prepare(self):
-        self.rfile = self.vfs.open(self.getselector(), "rt")
-        self.mbox = UnixMailbox(self.rfile)
+        self.mbox = mbox(self.getfspath())
         FolderHandler.prepare(self)
 
     def getargflag(self):
@@ -192,4 +198,3 @@ class MaildirMessageHandler(MessageHandler):
 
     def openmailbox(self):
         return Maildir(self.getfspath())
-

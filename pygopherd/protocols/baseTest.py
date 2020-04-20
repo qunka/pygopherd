@@ -1,14 +1,14 @@
 import unittest
 import pygopherd.handlers.file
 from pygopherd import testutil
-from StringIO import StringIO
+from io import BytesIO
 from pygopherd.protocols.base import BaseGopherProtocol
 
 class BaseProtocolTestCase(unittest.TestCase):
     def setUp(self):
         self.config = testutil.getconfig()
-        self.rfile = StringIO("/testfile.txt\n")
-        self.wfile = StringIO()
+        self.rfile = BytesIO(b"/testfile.txt\n")
+        self.wfile = BytesIO()
         self.logfile = testutil.getstringlogger()
         self.logstr =  "10.77.77.77 [BaseGopherProtocol/FileHandler]: /testfile.txt\n"
         self.handler = testutil.gettestinghandler(self.rfile, self.wfile,
@@ -67,28 +67,28 @@ class BaseProtocolTestCase(unittest.TestCase):
         # This is a file handler, not a request handler!
         handler = self.proto.gethandler()
         self.proto.log(handler)
-        self.assertEquals(self.logfile.getvalue(), self.logstr)
+        self.assertEqual(self.logfile.getvalue(), self.logstr)
 
     def testhandle_file(self):
         self.proto.handle()
-        self.assertEquals(self.logfile.getvalue(), self.logstr)
-        self.assertEquals(self.wfile.getvalue(), "Test\n")
+        self.assertEqual(self.logfile.getvalue(), self.logstr)
+        self.assertEqual(self.wfile.getvalue(), b"Test\n")
 
     def testhandle_notfound(self):
         proto = BaseGopherProtocol("/NONEXISTANT.txt\n", self.server,
                                    self.handler, self.rfile, self.wfile,
                                    self.config)
         proto.handle()
-        self.assertEquals(self.logfile.getvalue(),
+        self.assertEqual(self.logfile.getvalue(),
                           "10.77.77.77 [BaseGopherProtocol/None] EXCEPTION FileNotFound: '/NONEXISTANT.txt' does not exist (no handler found)\n")
-        self.assertEquals(self.wfile.getvalue(), "3'/NONEXISTANT.txt' does not exist (no handler found)\t\terror.host\t1\r\n")
+        self.assertEqual(self.wfile.getvalue(), b"3'/NONEXISTANT.txt' does not exist (no handler found)\t\terror.host\t1\r\n")
                 
     # We cannot test handle_dir here because we don't have enough info.
 
     def testfilenotfound(self):
-        self.proto.filenotfound("FOO")
-        self.assertEquals(self.wfile.getvalue(),
-                          "3FOO\t\terror.host\t1\r\n")
+        self.proto.filenotfound(b"FOO")
+        self.assertEqual(self.wfile.getvalue(),
+                          b"3FOO\t\terror.host\t1\r\n")
 
     def testgethandler(self):
         handler = self.proto.gethandler()
